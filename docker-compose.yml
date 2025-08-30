@@ -1,11 +1,14 @@
-version: '3.8'
-
 services:
-  flask-app:
-    build: .
+  web:
+    build: ./web
+    expose:
+      - "5000"
+
+  nginx-proxy:
+    build: ./proxy
     ports:
-      - "5000:5000"
-    environment:
-      - FLASK_APP=app.py
-      - FLASK_ENV=production
-    restart: unless-stopped
+      - "80:80"
+    volumes:
+      - "/var/log/nginx:/var/log/nginx"
+    depends_on:
+      - web

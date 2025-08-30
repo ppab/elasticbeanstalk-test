@@ -2,4 +2,4 @@ from flask import Flask
 app = Flask(__name__)
 @app.route('/')
 def hello_world():
-    return 'Hello Elastic Beanstalk! This is a Docker application'
+    return 'Hello Elastic Beanstalk! This is a Docker Compose application'
