@@ -63,6 +63,15 @@ docker-compose logs -f
 docker-compose down
 ```
 
+### Testing Aggregation Features
+```bash
+# Generate sample data and test aggregation endpoints
+node test-aggregation.js
+
+# Test sensor API endpoints
+node test-sensors.js
+```
+
 ### Development Mode with Hot Reloading
 ```bash
 # Run with development overrides for hot reloading
@@ -121,6 +130,14 @@ docker-compose up front nginx-proxy   # Frontend only
 - `DELETE /api/sensors/:sensorId` - Delete sensor
 - `POST /api/sensors/:sensorId/event` - Generate automatic event for active sensor
 
+### Aggregation Endpoints (`api:3001`)
+- `GET /api/aggregations/sensor-summary` - Get sensor data aggregated by sensor name and time interval
+  - Query params: `timeInterval` (1m, 5m, 15m, 30m, 1h, 6h, 12h, 1d, 1w, 1M), `limit` (default: 100)
+- `GET /api/aggregations/time-series` - Get time series data aggregated by time interval
+  - Query params: `timeInterval`, `sensorName` (optional filter), `limit`
+- `GET /api/aggregations/sensor-details` - Get detailed statistics for a specific sensor
+  - Query params: `sensorName` (required), `timeInterval`, `limit`
+
 ### Service2 (`service2:3002`)
 - `GET /health` - Service health check  
 - `GET /counter` - Increment and return request counter
@@ -130,8 +147,18 @@ docker-compose up front nginx-proxy   # Frontend only
 
 ### Frontend Routes (Nginx Proxy)
 - `/` - React dashboard (displays all services, events, and sensors)
+- `/aggregation` - Aggregation dashboard (SPA routing)
 - `/api/*` - Proxied to API service
 - `/flask/*` - Proxied to Flask service
+- **SPA Routing**: All client-side routes fallback to index.html
+
+### Frontend Views
+- **Main Dashboard**: Original view with services, events, and sensor management
+- **Aggregation Dashboard**: New view with sensor data aggregation by time intervals
+  - Sensor summary cards with sum, count, average, min/max values
+  - Time series chart showing value sums over time
+  - Filterable by sensor name and time interval
+  - Responsive design with modern UI
 
 ## Sensor Configuration
 
@@ -204,8 +231,11 @@ docker-compose up front nginx-proxy   # Frontend only
 - Routes `/` to React frontend (`front:80`)
 - Routes `/api/` to API service (`api:3001`) 
 - Routes `/flask/` to Flask service (`web:5000`)
+- **SPA Routing Support**: Handles React Router client-side routing
+- Static asset caching with proper headers
 - Health monitoring for Elastic Beanstalk with timestamped logs
 - WebSocket upgrade support for real-time features
+- **Development Mode**: Enhanced configuration for hot reloading
 
 ### Kafka Configuration (KRaft Mode)
 - Single-node Kafka cluster without Zookeeper dependency
