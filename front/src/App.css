@@ -43,6 +43,20 @@
   background-color: #21a9c7;
 }
 
+.create-event-btn {
+  background-color: #28a745 !important;
+  color: white !important;
+}
+
+.create-event-btn:hover:not(:disabled) {
+  background-color: #218838 !important;
+}
+
+.create-event-btn:disabled {
+  background-color: #6c757d !important;
+  cursor: not-allowed !important;
+}
+
 .App-main {
   padding: 40px 20px;
   max-width: 1200px;
@@ -128,4 +142,98 @@
 
 .error button:hover {
   background-color: #ff5252;
+}
+
+.event-count {
+  font-weight: bold;
+  margin-bottom: 12px;
+  color: #495057;
+}
+
+.events-list {
+  max-height: 300px;
+  overflow: hidden;
+}
+
+.events-scroll {
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.event-item {
+  background-color: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 8px;
+  transition: box-shadow 0.2s ease;
+}
+
+.event-item:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.event-item.transformed {
+  border-left: 4px solid #28a745;
+  background-color: #f8fff9;
+}
+
+.event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.event-id {
+  font-family: monospace;
+  font-size: 0.8rem;
+  background-color: #e9ecef;
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: #495057;
+}
+
+.event-date {
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+.event-details {
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.transform-info {
+  font-size: 0.8rem;
+  color: #28a745;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+.no-events {
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  padding: 20px;
+}
+
+/* Scrollbar styles */
+.events-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.events-scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.events-scroll::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.events-scroll::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
