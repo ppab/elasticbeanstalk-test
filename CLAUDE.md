@@ -63,6 +63,18 @@ docker-compose logs -f
 docker-compose down
 ```
 
+### Development Mode with Hot Reloading
+```bash
+# Run with development overrides for hot reloading
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+
+# Run specific services in development mode
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up front api
+
+# View logs for specific service
+docker-compose logs -f front
+```
+
 ### Individual Service Management
 ```bash
 # Build specific service
@@ -82,6 +94,12 @@ docker-compose up front nginx-proxy   # Frontend only
 3. **Event Transformation**: Service3 consumes from Kafka, transforms (30s delay), saves to Redis
 4. **Data Display**: Frontend fetches both raw and transformed events via API service
 
+### Sensor Management Flow
+1. **Sensor Creation**: React frontend creates sensors via `POST /api/sensors`
+2. **Sensor Storage**: API service persists sensor configurations in Redis
+3. **Automatic Events**: Active sensors generate events at specified heartbeat intervals
+4. **Sensor Control**: Users can start/stop sensors and modify configurations
+
 ### Environment Configuration
 - **TRANSFORM_DELAY**: Event transformation delay in ms (default: 30000)
 - **KAFKA_BROKER**: Kafka broker URL (default: kafka:9092)
@@ -93,6 +111,15 @@ docker-compose up front nginx-proxy   # Frontend only
 - `GET /api/health` - Service health check
 - `POST /api/ingest` - Ingest sensor events (requires: date, value, sensorId)
 - `GET /api/services` - Fetch all services data including events
+- `DELETE /api/events` - Delete all raw events
+- `DELETE /api/transformed-events` - Delete all transformed events
+
+### Sensor Management Endpoints (`api:3001`)
+- `GET /api/sensors` - Fetch all sensor configurations
+- `POST /api/sensors` - Create new sensor (requires: sensorName, sensorType, heartBeat, on)
+- `PUT /api/sensors/:sensorId` - Update sensor configuration
+- `DELETE /api/sensors/:sensorId` - Delete sensor
+- `POST /api/sensors/:sensorId/event` - Generate automatic event for active sensor
 
 ### Service2 (`service2:3002`)
 - `GET /health` - Service health check  
@@ -102,9 +129,74 @@ docker-compose up front nginx-proxy   # Frontend only
 - `GET /transformedEvents` - Fetch latest 10 transformed events from Redis
 
 ### Frontend Routes (Nginx Proxy)
-- `/` - React dashboard (displays all services and events)
+- `/` - React dashboard (displays all services, events, and sensors)
 - `/api/*` - Proxied to API service
 - `/flask/*` - Proxied to Flask service
+
+## Sensor Configuration
+
+### Sensor Object Structure
+```json
+{
+  "sensorId": 1,
+  "sensorName": "Temperature Sensor",
+  "sensorType": "gas|electricity|liquid|other",
+  "heartBeat": 30,
+  "on": true,
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z"
+}
+```
+
+### Sensor Types
+- **gas**: Gas sensors (temperature, pressure, flow)
+- **electricity**: Electrical sensors (voltage, current, power)
+- **liquid**: Liquid sensors (flow, level, temperature)
+- **other**: Miscellaneous sensors
+
+### Event Schema
+
+#### Manual Event (via `/api/ingest`)
+```json
+{
+  "id": "event_1234567890_abc123",
+  "date": "2024-01-01 12:00:00",
+  "value": 75,
+  "sensorId": 1,
+  "sensorName": "Temperature Sensor",
+  "sensorType": "gas",
+  "ingestedAt": "2024-01-01T12:00:00.000Z",
+  "metadata": {
+    "sensorHeartbeat": 30,
+    "sensorStatus": "active",
+    "eventSource": "manual"
+  }
+}
+```
+
+#### Automatic Event (via `/api/sensors/:id/event`)
+```json
+{
+  "id": "event_1234567890_def456",
+  "date": "2024-01-01 12:00:00",
+  "value": 82,
+  "sensorId": 1,
+  "sensorName": "Temperature Sensor",
+  "sensorType": "gas",
+  "ingestedAt": "2024-01-01T12:00:00.000Z",
+  "metadata": {
+    "sensorHeartbeat": 30,
+    "sensorStatus": "active",
+    "eventSource": "automatic"
+  }
+}
+```
+
+### Automatic Event Generation
+- When a sensor is turned ON, it automatically generates events at the specified heartbeat interval
+- Events include random values between 0-100 and the sensor ID
+- Events are sent to the standard ingestion pipeline (Redis + Kafka)
+- Automatic events are marked with `eventSource: "automatic"` in metadata
 
 ## Key Configuration Details
 
@@ -120,6 +212,12 @@ docker-compose up front nginx-proxy   # Frontend only
 - Topic: `sensor-events` for event streaming
 - Consumer group: `service3-transformers`
 - Persistent storage via named volume `kafka_data`
+
+### Redis Storage
+- **Events**: Stored as JSON strings in Redis list `events`
+- **Transformed Events**: Stored as JSON strings in Redis list `transformedEvents`
+- **Sensors**: Stored as JSON array in Redis key `sensors`
+- **Service Counters**: Various service state data
 
 ### Docker Images & Dependencies
 - **Node.js services**: `public.ecr.aws/docker/library/node:18-alpine` with pnpm

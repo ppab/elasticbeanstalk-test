@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  front:
+    build: 
+      context: ./front
+      target: development
+    volumes:
+      - ./front:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      - FAST_REFRESH=true
+    ports:
+      - "3000:3000"
+    command: pnpm start
+    stdin_open: true
+    tty: true
+
+  api:
+    volumes:
+      - ./api:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: pnpm dev
+
+  service2:
+    volumes:
+      - ./service2:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: pnpm dev
+
+  service3:
+    volumes:
+      - ./service3:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: pnpm dev
+
+  nginx-proxy:
+    build: 
+      context: ./proxy
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./proxy/nginx.dev.conf:/etc/nginx/nginx.conf:ro

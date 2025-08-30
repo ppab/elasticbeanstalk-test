@@ -70,7 +70,9 @@ services:
       - redis
 
   front:
-    build: ./front
+    build: 
+      context: ./front
+      target: production
     expose:
       - "80"
     environment:
@@ -87,6 +89,8 @@ services:
       - api
       - front
       - service3
+    environment:
+      - FRONTEND_URL=http://front:3000
 
 volumes:
   redis_data:
